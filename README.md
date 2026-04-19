@@ -1,2 +1,1 @@
-# HackKU26
-Assignment Prioritizer
+# Assignment Prioritizer
