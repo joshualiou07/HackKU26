@@ -9,4 +9,6 @@ class Prioritizer:
 
     def sort(self):
 
-    def remove(self):
+    def remove(self, index):
+        if index >= 0 and index < len(self.assignments):
+            self.assignments.pop
