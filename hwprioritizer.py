@@ -1,10 +1,12 @@
+from assignments import Assignments
+
 class Prioritizer:
     def __init__(self):
         self.assignments = []
 
  #Ranked by point system based on difficulty and due date
-    def add(self, days, difficulty):
-        hw = Assignments(days, difficulty)
+    def add(self, name, days, difficulty):
+        hw = Assignments(name, days, difficulty)
         self.assignments.append(hw)
 
     def sort(self):
@@ -27,4 +29,4 @@ class Prioritizer:
 
     def remove(self, index):
         if index >= 0 and index < len(self.assignments):
-            self.assignments.pop
+            self.assignments.pop(index)

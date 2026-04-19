@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework Prioritizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 32px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .content {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        form {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #eee;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button[type="submit"] {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        #assignments-list {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        #assignments-list h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .assignment-item {
+            padding: 12px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 12px;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        .assignment-item:hover {
+            background-color: #f0f0f0;
+            transform: translateX(4px);
+        }
+        .assignment-item:last-child {
+            margin-bottom: 0;
+        }
+        .assignment-item strong {
+            color: #333;
+        }
+        .assignment-item div {
+            color: #666;
+            font-size: 14px;
+        }
+        .remove-btn {
+            background: none;
+            color: #999;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s;
+        }
+        .remove-btn:hover {
+            color: #667eea;
+        }
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Homework Prioritizer</h1>
+        
+        <div class="content">
+            <form id="assignment-form">
+                <label for="name">Assignment Name:</label>
+                <input type="text" id="name" required>
+                
+                <label for="days">Days Until Due:</label>
+                <input type="number" id="days" min="0" required>
+                
+                <label for="difficulty">Difficulty (1-5):</label>
+                <select id="difficulty" required>
+                    <option value="">Select Difficulty</option>
+                    <option value="1">1 - Very Easy</option>
+                    <option value="2">2 - Easy</option>
+                    <option value="3">3 - Medium</option>
+                    <option value="4">4 - Hard</option>
+                    <option value="5">5 - Very Hard</option>
+                </select>
+                
+                <button type="submit">Prioritize</button>
+            </form>
+            
+            <div id="assignments-list">
+                <h2>Prioritized Assignments</h2>
+                <div id="assignments"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadAssignments() {
+            try {
+                const response = await fetch('/assignments');
+                const assignments = await response.json();
+                displayAssignments(assignments);
+            } catch (error) {
+                console.error('Error loading assignments:', error);
+            }
+        }
+
+        function displayAssignments(assignments) {
+            const container = document.getElementById('assignments');
+            container.innerHTML = '';
+            
+            if (assignments.length === 0) {
+                container.innerHTML = '<p>No assignments added yet.</p>';
+                return;
+            }
+
+            assignments.forEach((assignment) => {
+                const item = document.createElement('div');
+                item.className = 'assignment-item';
+                item.innerHTML = `
+                    <div>
+                        <strong>${assignment.name}</strong><br>
+                        Due in ${assignment.days} days | Difficulty: ${assignment.difficulty}/5
+                    </div>
+                    <button class="remove-btn" onclick="removeAssignment(${assignment.index})">×</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        async function removeAssignment(index) {
+            try {
+                const response = await fetch(`/remove/${index}`, { method: 'DELETE' });
+                if (response.ok) {
+                    loadAssignments();
+                } else {
+                    alert('Error removing assignment');
+                }
+            } catch (error) {
+                console.error('Error removing assignment:', error);
+            }
+        }
+
+        document.getElementById('assignment-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const days = document.getElementById('days').value;
+            const difficulty = document.getElementById('difficulty').value;
+            
+            if (name && days && difficulty) {
+                try {
+                    const response = await fetch('/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, days: parseInt(days), difficulty: parseInt(difficulty) })
+                    });
+                    
+                    if (response.ok) {
+                        document.getElementById('name').value = '';
+                        document.getElementById('days').value = '';
+                        document.getElementById('difficulty').value = '';
+                        loadAssignments();
+                    } else {
+                        alert('Error adding assignment');
+                    }
+                } catch (error) {
+                    console.error('Error adding assignment:', error);
+                }
+            }
+        });
+
+        // Load assignments on page load
+        loadAssignments();
+    </script>
+</body>
+</html>
